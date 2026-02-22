@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0f">
+<title>Le Mie App</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+:root{
+  --bg:#0a0a0f;--sur:#13131e;--sur2:#1c1c2a;--bor:#2a2a40;
+  --c1:#00e5ff;--c2:#a8ff3e;--c3:#bf5fff;--c4:#ff6b35;
+  --txt:#e8e8f0;--dim:#6060a0;--ok:#00e676;--err:#ff5252;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--txt);min-height:100dvh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 10% 0%,rgba(0,229,255,.07),transparent 55%),radial-gradient(ellipse 50% 60% at 90% 90%,rgba(168,255,62,.05),transparent 55%);pointer-events:none;z-index:0;}
+.screen{display:none;position:relative;z-index:1;min-height:100dvh;flex-direction:column;}
+.screen.active{display:flex;animation:fu .3s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--sur);border-top:1px solid var(--bor);display:none;z-index:50;}
+.screen-main.active~.bnav{display:flex;}
+.ni{flex:1;padding:11px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--dim);font-family:inherit;}
+.ni.active{color:var(--c1);}
+.ni-icon{font-size:1.25rem;}
+.ni-label{font-family:'Space Mono',monospace;font-size:.53rem;}
+.pc{flex:1;overflow-y:auto;padding-bottom:80px;}
+/* INSTALL */
+#si{align-items:center;justify-content:center;padding:32px 24px;text-align:center;}
+.logo{font-size:4rem;margin-bottom:14px;filter:drop-shadow(0 0 30px rgba(0,229,255,.4));}
+.big-title{font-size:2.2rem;font-weight:800;letter-spacing:-1.5px;margin-bottom:8px;background:linear-gradient(135deg,var(--c1),var(--c2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sub{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--dim);line-height:1.9;margin-bottom:28px;max-width:300px;}
+.isteps{width:100%;max-width:340px;margin-bottom:26px;}
+.istep{display:flex;align-items:flex-start;gap:12px;background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:13px;margin-bottom:8px;text-align:left;}
+.inum{width:26px;height:26px;border-radius:50%;border:1px solid var(--c1);color:var(--c1);font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.itxt{font-family:'Space Mono',monospace;font-size:.67rem;color:var(--dim);line-height:1.7;}
+.itxt strong{color:var(--txt);}
+.ibtn{width:100%;max-width:340px;padding:15px;background:linear-gradient(135deg,rgba(0,229,255,.15),rgba(168,255,62,.1));border:1px solid var(--c1);border-radius:12px;color:var(--c1);font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;}
+.skip{margin-top:13px;font-family:'Space Mono',monospace;font-size:.62rem;color:var(--dim);cursor:pointer;text-decoration:underline;}
+/* DASH */
+.dh{padding:22px 20px 14px;border-bottom:1px solid var(--bor);}
+.dg{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.dt{font-size:1.55rem;font-weight:800;letter-spacing:-1px;}
+.dt span{color:var(--c1);}
+/* STATS */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:14px 20px;}
+.sc{background:var(--sur);border:1px solid var(--bor);border-radius:16px;padding:18px 15px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.sc:active{transform:scale(.97);}
+.sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.sc.s1::after{background:var(--c1)}.sc.s2::after{background:var(--c2)}.sc.s3::after{background:var(--c3)}.sc.s4::after{background:var(--c4);}
+.snum{font-size:2.8rem;font-weight:800;line-height:1;letter-spacing:-2px;margin-bottom:5px;}
+.sc.s1 .snum{color:var(--c1)}.sc.s2 .snum{color:var(--c2)}.sc.s3 .snum{color:var(--c3)}.sc.s4 .snum{color:var(--c4);}
+.sico{font-size:1.3rem;margin-bottom:7px;display:block;}
+.slbl{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--dim);line-height:1.5;}
+.sact{font-family:'Space Mono',monospace;font-size:.52rem;color:var(--dim);margin-top:7px;opacity:.6;}
+/* SECTION TITLE */
+.stitle{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;padding:0 20px;margin-bottom:11px;}
+/* FAVS */
+.fscroll{display:flex;gap:11px;padding:0 20px;overflow-x:auto;scrollbar-width:none;margin-bottom:20px;}
+.fscroll::-webkit-scrollbar{display:none;}
+.fcard{flex-shrink:0;width:110px;background:var(--sur);border:1px solid var(--bor);border-radius:13px;padding:14px 11px 11px;cursor:pointer;transition:all .2s;}
+.fcard:active{transform:scale(.95);}
+.femo{font-size:1.7rem;margin-bottom:7px;display:block;}
+.fname{font-size:.78rem;font-weight:700;line-height:1.3;margin-bottom:3px;}
+.fdate{font-family:'Space Mono',monospace;font-size:.52rem;color:var(--dim);}
+/* QUICK PREVIEW */
+.qwrap{padding:0 20px;margin-bottom:20px;}
+.qbox{background:var(--sur);border:1px solid var(--bor);border-radius:14px;overflow:hidden;}
+.qta{width:100%;min-height:90px;background:var(--sur2);border:none;border-bottom:1px solid var(--bor);color:var(--txt);font-family:'Space Mono',monospace;font-size:.68rem;padding:14px;resize:none;outline:none;line-height:1.6;}
+.qbtns{display:flex;border-top:1px solid var(--bor);}
+.qbtn{flex:1;padding:11px;background:none;border:none;font-family:'Space Mono',monospace;font-size:.68rem;font-weight:700;cursor:pointer;}
+.qbtn.go{color:var(--c1);background:rgba(0,229,255,.08);border-right:1px solid var(--bor);}
+.qbtn.save{color:var(--c2);background:rgba(168,255,62,.08);border-right:1px solid var(--bor);}
+.qbtn.clr{color:var(--dim);}
+.qprev{display:none;margin-top:10px;border-radius:12px;overflow:hidden;border:1px solid var(--bor);}
+.qpbar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--sur);border-bottom:1px solid var(--bor);}
+.qdots{display:flex;gap:5px;}
+.qdot{width:10px;height:10px;border-radius:50%;}
+/* QUICK ACTIONS */
+.qacts{padding:0 20px;display:flex;flex-direction:column;gap:9px;margin-bottom:20px;}
+.qa{background:var(--sur);border:1px solid var(--bor);border-radius:12px;padding:13px 15px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:all .2s;}
+.qa:active{transform:scale(.98);}
+.qa-ic{font-size:1.25rem;flex-shrink:0;}
+.qa-t{font-size:.83rem;font-weight:700;margin-bottom:2px;}
+.qa-s{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--dim);line-height:1.4;}
+.qa-ar{color:var(--dim);margin-left:auto;}
+/* APPS PAGE */
+.tbar{padding:18px 20px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bor);}
+.tbar-t{font-size:1.2rem;font-weight:800;}
+.tbar-t span{color:var(--c1);}
+.tbtn{width:35px;height:35px;border-radius:7px;border:1px solid var(--bor);background:var(--sur);color:var(--dim);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.swrap{padding:11px 20px;border-bottom:1px solid var(--bor);}
+.sinp{width:100%;background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:10px 13px;font-family:'Space Mono',monospace;font-size:.72rem;color:var(--txt);outline:none;transition:border-color .2s;}
+.sinp:focus{border-color:var(--c1);}
+.sinp::placeholder{color:var(--dim);}
+.ascroll{flex:1;overflow-y:auto;padding:15px 20px 90px;}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:55px 20px;text-align:center;gap:9px;}
+.empty-ic{font-size:3rem;opacity:.22;}
+.empty-t{font-size:1rem;font-weight:700;color:var(--dim);}
+.empty-s{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--dim);line-height:1.8;max-width:230px;}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:11px;}
+.acard{background:var(--sur);border:1px solid var(--bor);border-radius:13px;padding:17px 13px 13px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:6px;}
+.acard:active{transform:scale(.96);}
+.acard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.acard[data-c="cyan"]::before{background:var(--c1)}.acard[data-c="green"]::before{background:var(--c2)}.acard[data-c="purple"]::before{background:var(--c3)}.acard[data-c="orange"]::before{background:var(--c4)}.acard[data-c="pink"]::before{background:#ff4081}.acard[data-c="yellow"]::before{background:#ffea00}
+.aemo{font-size:1.9rem;line-height:1;}
+.aname{font-weight:700;font-size:.83rem;line-height:1.3;}
+.adesc{font-family:'Space Mono',monospace;font-size:.57rem;color:var(--dim);line-height:1.5;flex:1;}
+.anote{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--c2);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.adate{font-family:'Space Mono',monospace;font-size:.51rem;color:var(--dim);opacity:.5;}
+.adel{position:absolute;top:7px;right:7px;width:21px;height:21px;border-radius:50%;background:rgba(255,82,82,.15);border:1px solid rgba(255,82,82,.3);color:var(--err);font-size:.57rem;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2;}
+.edit-mode .adel{display:flex;}
+.edit-mode .acard{animation:wig .5s infinite alternate;}
+@keyframes wig{from{transform:rotate(-1deg)}to{transform:rotate(1deg)}}
+.fab{position:fixed;bottom:74px;right:17px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));border:none;color:#0a0a0f;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(0,229,255,.3);z-index:100;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.fab:active{transform:scale(.92);}
+/* APP VIEWER */
+#sv{flex-direction:column;}
+.abar{display:flex;align-items:center;gap:9px;padding:11px 15px;border-bottom:1px solid var(--bor);background:var(--bg);position:sticky;top:0;z-index:10;}
+.bbtn{width:33px;height:33px;border-radius:7px;border:1px solid var(--bor);background:var(--sur);color:var(--txt);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.abar-t{font-weight:800;font-size:.92rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.abar-acts{display:flex;gap:5px;}
+.aact{padding:5px 9px;border-radius:6px;border:1px solid var(--bor);background:var(--sur);color:var(--dim);font-family:'Space Mono',monospace;font-size:.58rem;cursor:pointer;}
+.ifw{flex:1;background:white;}
+.ifw iframe{width:100%;height:100%;min-height:calc(100dvh - 58px);border:none;}
+/* KEYS PAGE */
+.kpage{padding:16px 20px 80px;}
+.kcard{background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:13px 15px;margin-bottom:9px;display:flex;align-items:center;gap:11px;}
+.kbtn{padding:5px 9px;border-radius:6px;font-family:'Space Mono',monospace;font-size:.58rem;cursor:pointer;}
+/* HISTORY PAGE */
+.hpage{padding:16px 20px 80px;}
+.hcard{background:var(--sur);border:1px solid var(--bor);border-radius:12px;padding:14px;margin-bottom:10px;}
+.hcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.hcard-btns{display:flex;gap:6px;}
+.hcard-snip{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--dim);line-height:1.6;word-break:break-word;}
+/* MODAL */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:flex-end;}
+.ov.open{display:flex;animation:foi .2s ease;}
+@keyframes foi{from{opacity:0}to{opacity:1}}
+.mod{width:100%;background:var(--sur);border-radius:20px 20px 0 0;padding:19px 20px 38px;max-height:93dvh;overflow-y:auto;animation:fsu .3s ease;}
+@keyframes fsu{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhandle{width:38px;height:4px;border-radius:2px;background:var(--bor);margin:0 auto 17px;}
+.mtitle{font-size:1.08rem;font-weight:800;margin-bottom:16px;}
+.fg{margin-bottom:13px;}
+.flbl{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block;}
+.finp,.fta{width:100%;background:var(--sur2);border:1px solid var(--bor);border-radius:8px;color:var(--txt);font-family:'Space Mono',monospace;font-size:.7rem;padding:10px 12px;outline:none;transition:border-color .2s;}
+.finp:focus,.fta:focus{border-color:var(--c1);}
+.fta{min-height:105px;resize:vertical;line-height:1.6;}
+.egrid{display:flex;flex-wrap:wrap;gap:7px;}
+.eopt{width:39px;height:39px;border-radius:8px;border:1px solid var(--bor);background:var(--sur2);font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.eopt.sel{border-color:var(--c1);background:rgba(0,229,255,.1);}
+.cgrid{display:flex;gap:9px;flex-wrap:wrap;}
+.copt{width:29px;height:29px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;}
+.copt.sel{border-color:white;transform:scale(1.18);}
+.macts{display:flex;gap:9px;margin-top:17px;}
+.mbtn{flex:1;padding:13px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.87rem;font-weight:700;cursor:pointer;transition:all .2s;border:1px solid var(--bor);background:var(--sur2);color:var(--dim);}
+.mbtn.pri{background:linear-gradient(135deg,rgba(0,229,255,.15),rgba(168,255,62,.1));border-color:var(--c1);color:var(--c1);}
+.mbtn:active{transform:scale(.97);}
+/* PRIVACY TOGGLE */
+.pvrow{display:flex;gap:8px;}
+.pvopt{flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;border:1px solid var(--bor);background:var(--sur2);cursor:pointer;font-family:'Space Mono',monospace;font-size:.65rem;}
+/* SHARE */
+.surl{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:11px;font-family:'Space Mono',monospace;font-size:.6rem;color:var(--dim);word-break:break-all;line-height:1.6;margin-bottom:11px;max-height:75px;overflow-y:auto;}
+.sbtn{width:100%;padding:12px;border-radius:10px;border:1px solid var(--c2);background:rgba(168,255,62,.1);color:var(--c2);font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;margin-bottom:7px;}
+/* TOAST */
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:9px 17px;font-family:'Space Mono',monospace;font-size:.68rem;color:var(--txt);white-space:nowrap;z-index:300;opacity:0;transition:all .3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:999;display:none;}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bor);border-radius:2px}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+
+<!-- INSTALL -->
+<div class="screen" id="si">
+  <div class="logo">🧱</div>
+  <div class="big-title">Le Mie App</div>
+  <div class="sub">Il tuo launcher personale. Raccogli, visualizza e lancia tutte le tue app HTML.</div>
+  <div class="isteps">
+    <div class="istep"><div class="inum">1</div><div class="itxt">Tocca il menu del browser <strong>(⋮ o condividi)</strong></div></div>
+    <div class="istep"><div class="inum">2</div><div class="itxt">Seleziona <strong>"Aggiungi alla schermata Home"</strong></div></div>
+    <div class="istep"><div class="inum">3</div><div class="itxt">Conferma — <strong>icona sul desktop</strong> come vera app</div></div>
+    <div class="istep"><div class="inum">4</div><div class="itxt">Apri <strong>sempre da quella icona</strong></div></div>
+  </div>
+  <button class="ibtn" onclick="goHome()">Ho capito — Entra nel Launcher</button>
+  <div class="skip" onclick="goHome()">Salta, entra comunque →</div>
+</div>
+
+<!-- MAIN -->
+<div class="screen screen-main" id="sm">
+
+  <!-- HOME -->
+  <div class="pc" id="ph" style="display:none">
+    <div class="dh">
+      <div class="dg">IL TUO SPAZIO</div>
+      <div class="dt">Ciao, <span>Builder</span> 👋</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="sgrid">
+      <div class="sc s1" onclick="showPage('pa')"><span class="sico">📱</span><div class="snum" id="st-apps">0</div><div class="slbl">App Create</div><div class="sact">→ vedi tutte</div></div>
+      <div class="sc s2" onclick="showPage('pk')"><span class="sico">🔑</span><div class="snum" id="st-keys">0</div><div class="slbl">Chiavi API</div><div class="sact">→ gestisci</div></div>
+      <div class="sc s3" onclick="showPage('pa')"><span class="sico">⚙️</span><div class="snum" id="st-back">0</div><div class="slbl">Backend Collegati</div><div class="sact">→ dettagli</div></div>
+      <div class="sc s4" onclick="showPage('pa')"><span class="sico">🔗</span><div class="snum" id="st-share">0</div><div class="slbl">App Condivise</div><div class="sact">→ condividi</div></div>
+    </div>
+
+    <!-- PREFERITE -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px;margin-bottom:10px;margin-top:6px;">
+      <div class="stitle" style="padding:0;">⭐ PREFERITE</div>
+      <button onclick="openFavPicker()" style="padding:4px 10px;border-radius:6px;border:1px solid var(--bor);background:var(--sur);color:var(--dim);font-family:'Space Mono',monospace;font-size:.55rem;cursor:pointer;">Modifica</button>
+    </div>
+    <div class="fscroll" id="fav-list"></div>
+    <div id="no-favs" style="display:none;padding:0 20px;margin-bottom:16px;"><div style="background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:14px;font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);text-align:center;line-height:1.8;">Nessuna preferita.<br>Premi <strong style="color:var(--txt);">Modifica</strong> per sceglierne fino a 6.</div></div>
+
+    <!-- ANTEPRIMA RAPIDA -->
+    <div class="stitle" style="margin-top:4px;">⚡ ANTEPRIMA RAPIDA</div>
+    <div class="qwrap">
+      <div class="qbox">
+        <textarea class="qta" id="qcode" placeholder="Incolla codice HTML da qualsiasi AI — ChatGPT, Claude, Gemini... vedi subito il risultato"></textarea>
+        <div class="qbtns">
+          <button class="qbtn go" onclick="qPreview()">▶ Anteprima</button>
+          <button class="qbtn save" onclick="qSave()">💾 Salva</button>
+          <button class="qbtn clr" onclick="qClear()">✕</button>
+        </div>
+      </div>
+      <div class="qprev" id="qprev">
+        <div class="qpbar">
+          <div class="qdots"><div class="qdot" style="background:#ff5f57"></div><div class="qdot" style="background:#febc2e"></div><div class="qdot" style="background:#28c840"></div></div>
+          <span style="font-family:'Space Mono',monospace;font-size:.58rem;color:var(--dim);">anteprima</span>
+          <button onclick="document.getElementById('qprev').style.display='none'" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:.9rem;">✕</button>
+        </div>
+        <iframe id="qframe" style="width:100%;height:380px;border:none;background:white;" sandbox="allow-scripts allow-forms allow-modals allow-same-origin"></iframe>
+      </div>
+    </div>
+
+    <!-- AZIONI -->
+    <div class="stitle">AZIONI RAPIDE</div>
+    <div class="qacts">
+      <div class="qa" onclick="openAddModal()"><div class="qa-ic">➕</div><div><div class="qa-t">Aggiungi app</div><div class="qa-s">Incolla codice o carica file HTML</div></div><div class="qa-ar">›</div></div>
+      <div class="qa" onclick="openModal('mi')"><div class="qa-ic">🔗</div><div><div class="qa-t">Importa da link</div><div class="qa-s">Qualcuno ti ha condiviso un'app?</div></div><div class="qa-ar">›</div></div>
+      <div class="qa" onclick="openBuilderTab()"><div class="qa-ic">🧱</div><div><div class="qa-t">Apri Lego Builder</div><div class="qa-s">Crea app guidato passo per passo</div></div><div class="qa-ar">›</div></div>
+      <div class="qa" onclick="showScreen('si')"><div class="qa-ic">📲</div><div><div class="qa-t">Installa sulla home</div><div class="qa-s">Aggiungi icona al desktop</div></div><div class="qa-ar">›</div></div>
+    </div>
+  </div>
+
+  <!-- APPS PAGE -->
+  <div class="pc" id="pa" style="display:none;padding:0">
+    <div class="tbar">
+      <div class="tbar-t">Le Mie <span>App</span></div>
+      <div style="display:flex;gap:8px;">
+        <button class="tbtn" id="btn-edit" onclick="toggleEdit()">✏️</button>
+      </div>
+    </div>
+    <div class="swrap"><input class="sinp" id="srch" type="text" placeholder="🔍 Cerca..." oninput="renderApps()"/></div>
+    <div class="ascroll" id="app-list"></div>
+    <button class="fab" onclick="openAddModal()">＋</button>
+  </div>
+
+  <!-- KEYS PAGE -->
+  <div class="pc kpage" id="pk" style="display:none">
+    <div class="dg" style="margin-bottom:3px;">ARCHIVIO SICURO</div>
+    <div style="font-size:1.3rem;font-weight:800;margin-bottom:16px;">🔑 Chiavi API</div>
+    <div style="background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:13px;font-family:'Space Mono',monospace;font-size:.66rem;color:var(--dim);line-height:1.8;margin-bottom:14px;">Salvate <strong style="color:var(--txt);">solo su questo dispositivo</strong>. Non inviate online. Tocca per copiarle.</div>
+    <div id="key-list"></div>
+    <button class="mbtn pri" style="width:100%;padding:13px;margin-top:14px;" onclick="openModal('mk');document.getElementById('kn').value='';document.getElementById('kv').value=''">+ Salva nuova chiave</button>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div class="pc hpage" id="phistory" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div><div class="dg" style="margin-bottom:3px;">ANTEPRIME PASSATE</div><div style="font-size:1.3rem;font-weight:800;">🕓 Cronologia</div></div>
+      <button onclick="clearHistory()" style="padding:6px 12px;border-radius:7px;border:1px solid var(--bor);background:var(--sur);color:var(--dim);font-family:'Space Mono',monospace;font-size:.58rem;cursor:pointer;">Svuota</button>
+    </div>
+    <div style="background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:12px;font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);line-height:1.8;margin-bottom:16px;">Ultime 10 anteprime rapide salvate automaticamente.</div>
+    <div id="hist-list"></div>
+  </div>
+
+  <!-- BACKUP PAGE -->
+  <div class="pc" id="pbackup" style="display:none;padding:16px 20px 80px;">
+    <div class="dg" style="margin-bottom:3px;">SICUREZZA DATI</div>
+    <div style="font-size:1.3rem;font-weight:800;margin-bottom:16px;">☁️ Backup e Ripristino</div>
+
+    <div style="background:var(--sur);border:1px solid rgba(0,229,255,.25);border-radius:12px;padding:16px;margin-bottom:14px;">
+      <div style="font-weight:800;font-size:.9rem;margin-bottom:6px;color:var(--c1);">💡 Come funziona</div>
+      <div style="font-family:monospace;font-size:.65rem;color:var(--dim);line-height:1.9;">
+        Esporta un file <strong style="color:var(--txt);">backup.json</strong> con tutte le tue app, documenti, chiavi API e preferite.<br>
+        Salvalo su Mega, Drive, WhatsApp a te stesso — dove vuoi.<br>
+        Se cambi telefono: importa il file e ritrovi tutto.
+      </div>
+    </div>
+
+    <!-- LAST BACKUP INFO -->
+    <div id="backup-info" style="background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:13px;margin-bottom:16px;font-family:monospace;font-size:.65rem;color:var(--dim);line-height:1.8;"></div>
+
+    <!-- EXPORT -->
+    <button onclick="exportBackup()" style="width:100%;padding:15px;background:linear-gradient(135deg,rgba(0,229,255,.15),rgba(168,255,62,.1));border:1px solid var(--c1);border-radius:12px;color:var(--c1);font-family:Syne,sans-serif;font-size:1rem;font-weight:800;cursor:pointer;margin-bottom:10px;">
+      📥 Esporta Backup
+    </button>
+
+    <!-- IMPORT -->
+    <label for="restore-file" style="display:block;width:100%;padding:15px;background:rgba(168,255,62,.08);border:1px solid var(--c2);border-radius:12px;color:var(--c2);font-family:Syne,sans-serif;font-size:1rem;font-weight:800;cursor:pointer;text-align:center;margin-bottom:10px;">
+      📤 Importa Backup
+    </label>
+    <input type="file" id="restore-file" accept=".json" style="display:none;" onchange="importBackup(event)"/>
+
+    <!-- REMINDER SETTING -->
+    <div style="background:var(--sur);border:1px solid var(--bor);border-radius:12px;padding:14px;margin-top:8px;">
+      <div style="font-weight:800;font-size:.85rem;margin-bottom:10px;">🔔 Promemoria backup</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:monospace;font-size:.68rem;color:var(--dim);">
+          <input type="radio" name="bkrem" value="7" style="accent-color:var(--c1);"/> Ogni settimana
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:monospace;font-size:.68rem;color:var(--dim);">
+          <input type="radio" name="bkrem" value="30" style="accent-color:var(--c1);"/> Ogni mese
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:monospace;font-size:.68rem;color:var(--dim);">
+          <input type="radio" name="bkrem" value="0" style="accent-color:var(--c1);"/> Mai
+        </label>
+      </div>
+      <button onclick="saveReminder()" style="margin-top:12px;padding:9px 16px;border-radius:8px;border:1px solid var(--bor);background:var(--sur2);color:var(--dim);font-family:monospace;font-size:.68rem;cursor:pointer;">Salva impostazione</button>
+    </div>
+  </div>
+
+</div><!-- /screen-main -->
+
+<!-- APP VIEWER -->
+<div class="screen" id="sv">
+  <div class="abar">
+    <button class="bbtn" onclick="closeApp()">←</button>
+    <div class="abar-t" id="av-title">App</div>
+    <div class="abar-acts">
+      <button class="aact" onclick="reloadApp()">↻</button>
+      <button class="aact" onclick="shareCurrentApp()">🔗</button>
+      <button class="aact" onclick="downloadCurrentApp()">💾</button>
+    </div>
+  </div>
+  <div class="ifw"><iframe id="av-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-same-origin"></iframe></div>
+</div>
+
+<!-- FOLDER / APP DETAIL -->
+<div class="screen" id="sfd">
+  <div class="abar">
+    <button class="bbtn" onclick="closeFolder()">←</button>
+    <div class="abar-t" id="fd-title">App</div>
+    <div style="display:flex;gap:5px;">
+      <button class="aact" onclick="shareFolderApp()" id="fd-share-btn">🔗</button>
+      <button class="aact" onclick="editCurrentApp()">✏️</button>
+    </div>
+  </div>
+  <div class="pc" style="padding:20px 20px 100px;" id="fd-body">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<!-- DOC VIEWER -->
+<div class="screen" id="sdoc">
+  <div class="abar">
+    <button class="bbtn" onclick="closeDoc()">←</button>
+    <div class="abar-t" id="doc-title">Documento</div>
+    <button class="aact" onclick="editCurrentDoc()">✏️</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:20px;">
+    <div id="doc-body" style="font-family:'Space Mono',monospace;font-size:.78rem;line-height:1.9;color:var(--txt);white-space:pre-wrap;"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav" id="bnav">
+  <button class="ni active" id="ni-ph" onclick="showPage('ph')"><span class="ni-icon">🏠</span><span class="ni-label">Home</span></button>
+  <button class="ni" id="ni-pa" onclick="showPage('pa')"><span class="ni-icon">📱</span><span class="ni-label">App</span></button>
+  <button class="ni" id="ni-pk" onclick="showPage('pk')"><span class="ni-icon">🔑</span><span class="ni-label">Chiavi</span></button>
+  <button class="ni" id="ni-phistory" onclick="showPage('phistory')"><span class="ni-icon">🕓</span><span class="ni-label">Cronologia</span></button>
+  <button class="ni" id="ni-pbackup" onclick="showPage('pbackup')"><span class="ni-icon">☁️</span><span class="ni-label">Backup</span></button>
+</nav>
+
+<!-- MODAL: SCELTA AGGIUNTA -->
+<div class="ov" id="mc" onclick="if(event.target===this)closeModal('mc')">
+  <div class="mod">
+    <div class="mhandle"></div>
+    <div class="mtitle">➕ Aggiungi App</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="qa" onclick="closeModal('mc');openBuilderTab()" style="border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.05);">
+        <div class="qa-ic">🧱</div><div><div class="qa-t" style="color:var(--c1);">Crea con Lego Builder</div><div class="qa-s">Apre il builder in nuova scheda</div></div><div class="qa-ar">›</div>
+      </div>
+      <div class="qa" onclick="closeModal('mc');openAddForm()" style="border-color:rgba(168,255,62,.3);background:rgba(168,255,62,.05);">
+        <div class="qa-ic">📋</div><div><div class="qa-t" style="color:var(--c2);">Incolla codice HTML</div><div class="qa-s">Hai già il codice pronto?</div></div><div class="qa-ar">›</div>
+      </div>
+      <div class="qa" onclick="closeModal('mc');triggerFileInput()" style="border-color:rgba(255,107,53,.3);background:rgba(255,107,53,.05);">
+        <div class="qa-ic">📂</div><div><div class="qa-t" style="color:var(--c4);">Importa file HTML</div><div class="qa-s">Carica un file .html dal dispositivo</div></div><div class="qa-ar">›</div>
+      </div>
+    </div>
+    <button class="mbtn" style="width:100%;margin-top:14px;" onclick="closeModal('mc')">Annulla</button>
+  </div>
+</div>
+
+<!-- MODAL: FORM APP -->
+<div class="ov" id="mf" onclick="if(event.target===this)closeModal('mf')">
+  <div class="mod">
+    <div class="mhandle"></div>
+    <div class="mtitle" id="mf-title">💾 Salva App</div>
+    <div class="fg"><label class="flbl">Nome</label><input class="finp" id="f-name" type="text" placeholder="Es: Il mio calcolatore..." maxlength="40"/></div>
+    <div class="fg"><label class="flbl">Descrizione</label><input class="finp" id="f-desc" type="text" placeholder="Cosa fa questa app?" maxlength="80"/></div>
+    <div class="fg"><label class="flbl">Note personali</label><textarea class="fta" id="f-note" style="min-height:60px;" placeholder="Es: fatta con Claude il 21 feb, usa chiave X, da migliorare aggiungendo Y..."></textarea></div>
+    <div class="fg">
+      <label class="flbl">Visibilita</label>
+      <div class="pvrow">
+        <label class="pvopt"><input type="radio" name="fpriv" id="fpriv-no" value="no" checked style="accent-color:var(--c1)"/> 🔒 Privata</label>
+        <label class="pvopt"><input type="radio" name="fpriv" id="fpriv-yes" value="yes" style="accent-color:var(--c2)"/> 🔗 Condivisibile</label>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="flbl">Backend collegato?</label>
+      <select class="finp" id="f-back">
+        <option value="">No</option><option value="Make.com">Make.com</option><option value="n8n">n8n</option><option value="Supabase">Supabase</option><option value="Pipedream">Pipedream</option><option value="Altro">Altro</option>
+      </select>
+    </div>
+    <div class="fg"><label class="flbl">Icona</label><div class="egrid" id="egrid"></div></div>
+    <div class="fg"><label class="flbl">Colore</label><div class="cgrid" id="cgrid"></div></div>
+    <div class="fg">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+        <label class="flbl" style="margin-bottom:0;">Codice HTML</label>
+        <label for="f-file" style="padding:5px 10px;border-radius:6px;border:1px solid var(--c4);background:rgba(255,107,53,.1);color:var(--c4);font-family:'Space Mono',monospace;font-size:.58rem;cursor:pointer;">📂 Carica file</label>
+        <input type="file" id="f-file" accept=".html,.htm" style="display:none;" onchange="loadFile(event)"/>
+      </div>
+      <textarea class="fta" id="f-code" placeholder="Incolla il codice HTML completo..."></textarea>
+    </div>
+    <div class="macts">
+      <button class="mbtn" onclick="closeModal('mf')">Annulla</button>
+      <button class="mbtn pri" id="mf-save" onclick="saveApp()">💾 Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: IMPORTA LINK -->
+<div class="ov" id="mi" onclick="if(event.target===this)closeModal('mi')">
+  <div class="mod">
+    <div class="mhandle"></div>
+    <div class="mtitle">🔗 Importa da Link</div>
+    <div class="fg"><label class="flbl">Incolla il link condiviso</label><textarea class="fta" id="i-link" style="min-height:75px;" placeholder="Incolla il link ricevuto..."></textarea></div>
+    <div class="macts">
+      <button class="mbtn" onclick="closeModal('mi')">Annulla</button>
+      <button class="mbtn pri" onclick="importLink()">⬇️ Importa</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CHIAVE API -->
+<div class="ov" id="mk" onclick="if(event.target===this)closeModal('mk')">
+  <div class="mod">
+    <div class="mhandle"></div>
+    <div class="mtitle">🔑 Salva Chiave API</div>
+    <div class="fg"><label class="flbl">Nome servizio</label><input class="finp" id="kn" type="text" placeholder="Es: Claude AI, OpenAI..."/></div>
+    <div class="fg"><label class="flbl">Chiave API</label><input class="finp" id="kv" type="password" placeholder="sk-ant-..."/></div>
+    <div class="macts">
+      <button class="mbtn" onclick="closeModal('mk')">Annulla</button>
+      <button class="mbtn pri" onclick="saveKey()">💾 Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CONDIVIDI -->
+<div class="ov" id="ms" onclick="if(event.target===this)closeModal('ms')">
+  <div class="mod">
+    <div class="mhandle"></div>
+    <div class="mtitle">📤 Condividi App</div>
+
+    <div style="font-family:monospace;font-size:.65rem;color:var(--dim);line-height:1.9;margin-bottom:16px;">
+      Il modo più semplice è inviare il <strong style="color:var(--txt);">file HTML</strong> — funziona su WhatsApp, email, Telegram, ovunque. Chi lo riceve lo apre nel browser o lo importa nel suo Launcher.
+    </div>
+
+    <!-- OPTION 1: Download file -->
+    <button onclick="shareDownloadFile()" class="sbtn" style="border-color:var(--c2);background:rgba(168,255,62,.1);color:var(--c2);margin-bottom:10px;">
+      📥 Scarica file HTML — poi invialo
+    </button>
+
+    <!-- OPTION 2: Native share (file) -->
+    <button onclick="shareNativeFile()" class="sbtn" style="border-color:var(--c1);background:rgba(0,229,255,.08);color:var(--c1);margin-bottom:16px;">
+      ↗️ Invia direttamente via WhatsApp / Telegram...
+    </button>
+
+    <div style="border-top:1px solid var(--bor);padding-top:14px;margin-top:2px;">
+      <div style="font-family:monospace;font-size:.6rem;color:var(--dim);margin-bottom:8px;letter-spacing:1px;">OPPURE — LINK (solo se entrambi usate lo stesso server)</div>
+      <div class="surl" id="share-url" style="font-size:.55rem;opacity:.5;max-height:45px;overflow:hidden;">...</div>
+      <button onclick="copyShareLink()" style="margin-top:8px;padding:7px 13px;border-radius:7px;border:1px solid var(--bor);background:none;color:var(--dim);font-family:monospace;font-size:.6rem;cursor:pointer;">📋 Copia link comunque</button>
+    </div>
+
+    <div style="font-family:monospace;font-size:.56rem;color:var(--dim);margin-top:12px;line-height:1.6;">⚠️ Non condividere se contiene API key personali.</div>
+  </div>
+</div>
+
+<!-- MODAL: PREFERITE -->
+<div class="ov" id="mfav" onclick="if(event.target===this)closeModal('mfav')">
+  <div class="mod">
+    <div class="mhandle"></div>
+    <div class="mtitle">⭐ Scegli Preferite</div>
+    <div style="font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);margin-bottom:14px;line-height:1.6;">Fino a 6 app in home. Tocca per selezionare.</div>
+    <div id="fav-picker" style="display:flex;flex-direction:column;gap:8px;max-height:55dvh;overflow-y:auto;"></div>
+    <div class="macts" style="margin-top:16px;">
+      <button class="mbtn" onclick="closeModal('mfav')">Annulla</button>
+      <button class="mbtn pri" onclick="saveFavs()">✅ Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DOC EDITOR -->
+<div class="ov" id="mdoc" onclick="if(event.target===this)closeModal('mdoc')">
+  <div class="mod">
+    <div class="mhandle"></div>
+    <div class="mtitle" id="mdoc-title">📄 Nuovo Documento</div>
+    <div class="fg"><label class="flbl">Titolo documento</label><input class="finp" id="doc-name-inp" type="text" placeholder="Es: Istruzioni, Descrizione, Note tecniche..."/></div>
+    <div class="fg"><label class="flbl">Contenuto</label><textarea class="fta" id="doc-content-inp" style="min-height:200px;" placeholder="Scrivi qui il contenuto del documento..."></textarea></div>
+    <div class="macts">
+      <button class="mbtn" onclick="closeModal('mdoc')">Annulla</button>
+      <button class="mbtn pri" onclick="saveDoc()">💾 Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fi-hidden" accept=".html,.htm" style="display:none;" onchange="loadFileHidden(event)"/>
+
+<script>
+var apps=[], keys=[], editMode=false, currentApp=null, editId=null, selEmoji='🚀', selColor='cyan', tempFavs=[], shareApp=null;
+var EMOJIS=['🚀','📝','🌤','✅','🧮','🎮','💰','📊','🎵','🍕','💪','🧠','🔍','📷','🗺','⚡','🎨','🤖','📅','💬'];
+var COLORS=[{n:'cyan',v:'#00e5ff'},{n:'green',v:'#a8ff3e'},{n:'purple',v:'#bf5fff'},{n:'orange',v:'#ff6b35'},{n:'pink',v:'#ff4081'},{n:'yellow',v:'#ffea00'}];
+
+function load(){
+  try{apps=JSON.parse(localStorage.getItem('launcher_apps')||'[]');}catch(e){apps=[];}
+  try{keys=JSON.parse(localStorage.getItem('launcher_keys')||'[]');}catch(e){keys=[];}
+}
+function persist(){
+  localStorage.setItem('launcher_apps',JSON.stringify(apps));
+  localStorage.setItem('launcher_keys',JSON.stringify(keys));
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  document.getElementById('bnav').style.display = id==='sm' ? 'flex' : 'none';
+}
+function goHome(){showScreen('sm');showPage('ph');}
+
+function showPage(id){
+  ['ph','pa','pk','phistory','pbackup'].forEach(function(p){
+    document.getElementById(p).style.display='none';
+    var ni=document.getElementById('ni-'+p);
+    if(ni) ni.classList.remove('active');
+  });
+  document.getElementById(id).style.display='block';
+  var ni=document.getElementById('ni-'+id);
+  if(ni) ni.classList.add('active');
+  if(id==='ph') refreshDash();
+  if(id==='pa') renderApps();
+  if(id==='pk') renderKeys();
+  if(id==='phistory') renderHistory();
+  if(id==='pbackup'){updateBackupInfo();loadReminderSetting();}
+}
+
+function refreshDash(){
+  document.getElementById('st-apps').textContent=apps.length;
+  document.getElementById('st-keys').textContent=keys.length;
+  document.getElementById('st-back').textContent=apps.filter(function(a){return a.back&&a.back!=='';}).length;
+  document.getElementById('st-share').textContent=parseInt(localStorage.getItem('share_count')||'0');
+  renderFavs();
+}
+
+function cleanText(s){
+  if(!s) return '';
+  return s.replace(/<[^>]*>/g,'').replace(/\\n/g,' ').replace(/\n/g,' ').replace(/\s+/g,' ').trim().substring(0,80);
+}
+
+function renderFavs(){
+  var favIds=JSON.parse(localStorage.getItem('launcher_favs')||'[]');
+  var favs=favIds.map(function(id){return apps.find(function(a){return a.id===id;});}).filter(Boolean);
+  var fl=document.getElementById('fav-list');
+  var nf=document.getElementById('no-favs');
+  if(favs.length>0){
+    nf.style.display='none';
+    fl.style.display='flex';
+    fl.innerHTML=favs.map(function(a){
+      return '<div class="fcard" onclick="launchById(\''+a.id+'\')">'
+        +'<span class="femo">'+(a.emoji||'🚀')+'</span>'
+        +'<div class="fname">'+a.name+'</div>'
+        +'<div class="fdate">'+fmtDate(a.created)+'</div>'
+        +'</div>';
+    }).join('');
+  } else {
+    fl.style.display='none';
+    nf.style.display='block';
+  }
+}
+
+function fmtDate(ts){
+  if(!ts) return '';
+  return new Date(ts).toLocaleDateString('it-IT',{day:'2-digit',month:'short'});
+}
+
+function renderApps(){
+  var q=(document.getElementById('srch').value||'').toLowerCase();
+  var filtered=apps.filter(function(a){
+    return a.name.toLowerCase().indexOf(q)>-1||(a.desc||'').toLowerCase().indexOf(q)>-1;
+  });
+  var el=document.getElementById('app-list');
+  if(filtered.length===0){
+    el.innerHTML='<div class="empty"><div class="empty-ic">🧱</div><div class="empty-t">'+(q?'Nessun risultato':'Nessuna app ancora')+'</div><div class="empty-s">'+(q?'Prova altro termine':'Premi + per aggiungere la tua prima app')+'</div></div>';
+    return;
+  }
+  var g=document.createElement('div');
+  g.className='agrid'+(editMode?' edit-mode':'');
+  filtered.forEach(function(app){
+    var card=document.createElement('div');
+    card.className='acard';
+    card.setAttribute('data-c',app.color||'cyan');
+    var note=app.note?'<div class="anote">📝 '+cleanText(app.note)+'</div>':'';
+    var back=app.back?'<div style="font-family:monospace;font-size:.5rem;color:var(--c3);margin-top:2px;">⚙️ '+app.back+'</div>':'';
+    var priv='<button onclick="event.stopPropagation();togglePrivacy(\''+app.id+'\')" style="font-size:.75rem;background:none;border:none;cursor:pointer;padding:2px;" title="'+(app.pub?'Pubblica — tocca per rendere privata':'Privata — tocca per rendere condivisibile')+'">'+(app.pub?'🔗':'🔒')+'</button>';
+    card.innerHTML='<button class="adel" onclick="delApp(event,\''+app.id+'\')">✕</button>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;">'
+      +'<div class="aemo">'+(app.emoji||'🚀')+'</div>'+priv+'</div>'
+      +'<div class="aname">'+app.name+'</div>'
+      +(app.desc?'<div class="adesc">'+cleanText(app.desc)+'</div>':'')
+      +note+back
+      +'<div class="adate">'+fmtDate(app.created)+'</div>';
+    card.onclick=function(e){
+      if(e.target.classList.contains('adel')) return;
+      if(editMode){openEditForm(app.id);return;}
+      openFolder(app.id);
+    };
+    g.appendChild(card);
+  });
+  el.innerHTML='';
+  el.appendChild(g);
+}
+
+function toggleEdit(){
+  editMode=!editMode;
+  var btn=document.getElementById('btn-edit');
+  btn.style.color=editMode?'var(--err)':'';
+  btn.style.borderColor=editMode?'var(--err)':'';
+  renderApps();
+}
+
+function delApp(e,id){
+  e.stopPropagation();
+  if(!confirm('Eliminare questa app?')) return;
+  apps=apps.filter(function(a){return a.id!==id;});
+  persist();renderApps();refreshDash();
+}
+
+function launchById(id){
+  var app=apps.find(function(a){return a.id===id;});
+  if(app) launchApp(app);
+}
+
+function launchApp(app){
+  currentApp=app;
+  document.getElementById('av-title').textContent=(app.emoji||'')+' '+app.name;
+  document.getElementById('av-frame').srcdoc=app.code||'<p style="padding:20px;font-family:sans-serif;color:#999">Nessun codice</p>';
+  showScreen('sv');
+}
+
+function closeApp(){
+  document.getElementById('av-frame').srcdoc='';
+  currentApp=null;
+  showScreen('sm');
+}
+
+function reloadApp(){if(currentApp) document.getElementById('av-frame').srcdoc=currentApp.code;}
+
+function downloadCurrentApp(){
+  if(!currentApp) return;
+  var b=new Blob([currentApp.code],{type:'text/html'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download=currentApp.name.replace(/\s+/g,'-').toLowerCase()+'.html';
+  a.click();
+}
+
+function shareCurrentApp(){
+  if(!currentApp) return;
+  if(!currentApp.pub){
+    if(confirm('Questa app e privata. Renderla condivisibile?')){
+      var idx=apps.findIndex(function(a){return a.id===currentApp.id;});
+      if(idx>-1){apps[idx].pub=true;currentApp=apps[idx];persist();}
+    } else return;
+  }
+  openShareModal(currentApp);
+}
+
+function openShareModal(app){
+  shareApp=app;
+  var data={name:app.name,desc:app.desc,emoji:app.emoji,color:app.color,code:app.code};
+  var link=location.href.split('?')[0]+'?app='+btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  document.getElementById('share-url').textContent=link;
+  openModal('ms');
+  var c=parseInt(localStorage.getItem('share_count')||'0')+1;
+  localStorage.setItem('share_count',String(c));
+  refreshDash();
+}
+
+function copyShareLink(){
+  var url=document.getElementById('share-url').textContent;
+  navigator.clipboard.writeText(url).then(function(){toast('Link copiato!');closeModal('ms');}).catch(function(){toast('Copia manualmente il link');});
+}
+
+function nativeShare(){
+  var url=document.getElementById('share-url').textContent;
+  if(navigator.share) navigator.share({title:shareApp?shareApp.name:'App',text:'Guarda questa app!',url:url});
+  else copyShareLink();
+}
+
+function checkSharedLink(){
+  var p=new URLSearchParams(location.search);
+  var ap=p.get('app');
+  if(!ap) return;
+  try{
+    var data=JSON.parse(decodeURIComponent(escape(atob(ap))));
+    if(data.code) setTimeout(function(){
+      if(confirm('Qualcuno ti ha condiviso "'+data.name+'". Vuoi aprirla?')){
+        launchApp(Object.assign({},data,{id:String(Date.now()),created:Date.now()}));
+        if(confirm('Vuoi salvarla nel Launcher?')){
+          apps.unshift(Object.assign({},data,{id:String(Date.now()),created:Date.now()}));
+          persist();toast('App salvata!');
+        }
+      }
+    },800);
+  }catch(e){}
+}
+
+// ADD / EDIT
+function openAddModal(){openModal('mc');}
+
+function openAddForm(){
+  editId=null;
+  document.getElementById('mf-title').textContent='➕ Aggiungi App';
+  document.getElementById('mf-save').textContent='💾 Salva';
+  ['f-name','f-desc','f-note','f-code'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('f-back').value='';
+  document.getElementById('fpriv-no').checked=true;
+  selEmoji='🚀';selColor='cyan';
+  updateEmoji();updateColor();
+  openModal('mf');
+}
+
+function openEditForm(id){
+  var app=apps.find(function(a){return a.id===id;});
+  if(!app) return;
+  editId=id;
+  document.getElementById('mf-title').textContent='✏️ Modifica App';
+  document.getElementById('mf-save').textContent='💾 Aggiorna';
+  document.getElementById('f-name').value=app.name;
+  document.getElementById('f-desc').value=app.desc||'';
+  document.getElementById('f-note').value=app.note||'';
+  document.getElementById('f-code').value=app.code||'';
+  document.getElementById('f-back').value=app.back||'';
+  if(app.pub) document.getElementById('fpriv-yes').checked=true;
+  else document.getElementById('fpriv-no').checked=true;
+  selEmoji=app.emoji||'🚀';selColor=app.color||'cyan';
+  updateEmoji();updateColor();
+  openModal('mf');
+}
+
+function saveApp(){
+  var name=document.getElementById('f-name').value.trim();
+  var desc=document.getElementById('f-desc').value.trim();
+  var note=document.getElementById('f-note').value.trim();
+  var code=document.getElementById('f-code').value.trim();
+  var back=document.getElementById('f-back').value;
+  var pub=document.getElementById('fpriv-yes').checked;
+  if(!name){toast('Dai un nome!');return;}
+  if(!code){toast('Incolla il codice HTML!');return;}
+  var isFirst=apps.length===0&&!editId;
+  var obj={name:name,desc:cleanText(desc),note:note,code:code,back:back,pub:pub,emoji:selEmoji,color:selColor};
+  if(editId){
+    var idx=apps.findIndex(function(a){return a.id===editId;});
+    if(idx>-1) apps[idx]=Object.assign({},apps[idx],obj);
+  } else {
+    apps.unshift(Object.assign({id:String(Date.now()),created:Date.now()},obj));
+  }
+  persist();closeModal('mf');
+  if(editMode) toggleEdit();
+  renderApps();refreshDash();
+  if(isFirst) setTimeout(function(){celebrate(name);},300);
+  else toast('App salvata!');
+}
+
+function loadFile(e){
+  var file=e.target.files[0];
+  if(!file) return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    document.getElementById('f-code').value=ev.target.result;
+    if(!document.getElementById('f-name').value){
+      document.getElementById('f-name').value=file.name.replace(/\.html?$/i,'').replace(/[-_]/g,' ');
+    }
+    toast('File caricato!');
+  };
+  r.readAsText(file);
+  e.target.value='';
+}
+
+function triggerFileInput(){
+  document.getElementById('fi-hidden').click();
+}
+
+function loadFileHidden(e){
+  var file=e.target.files[0];
+  if(!file) return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    openAddForm();
+    document.getElementById('f-code').value=ev.target.result;
+    document.getElementById('f-name').value=file.name.replace(/\.html?$/i,'').replace(/[-_]/g,' ');
+    toast('File caricato! Dai un nome e salva.');
+  };
+  r.readAsText(file);
+  e.target.value='';
+}
+
+// KEYS
+function renderKeys(){
+  var el=document.getElementById('key-list');
+  if(keys.length===0){el.innerHTML='<div style="text-align:center;padding:40px 20px;font-family:monospace;font-size:.7rem;color:var(--dim);">Nessuna chiave salvata</div>';return;}
+  el.innerHTML=keys.map(function(k,i){
+    return '<div class="kcard">'
+      +'<span style="font-size:1.3rem;">🔑</span>'
+      +'<div style="flex:1;"><div style="font-weight:700;font-size:.83rem;margin-bottom:2px;">'+k.name+'</div>'
+      +'<div style="font-family:monospace;font-size:.62rem;color:var(--dim);">'+k.val.substring(0,8)+'••••••••</div></div>'
+      +'<button class="kbtn" onclick="copyKey('+i+')" style="border:1px solid var(--bor);background:var(--sur2);color:var(--dim);">Copia</button>'
+      +'<button class="kbtn" onclick="delKey('+i+')" style="border:1px solid rgba(255,82,82,.3);background:rgba(255,82,82,.08);color:var(--err);margin-left:5px;">✕</button>'
+      +'</div>';
+  }).join('');
+}
+
+function saveKey(){
+  var n=document.getElementById('kn').value.trim();
+  var v=document.getElementById('kv').value.trim();
+  if(!n||!v){toast('Compila tutti i campi!');return;}
+  keys.push({name:n,val:v,created:Date.now()});
+  persist();closeModal('mk');renderKeys();refreshDash();toast('Chiave salvata!');
+}
+
+function copyKey(i){
+  navigator.clipboard.writeText(keys[i].val).then(function(){toast('Chiave copiata!');}).catch(function(){toast('Copia manuale necessaria');});
+}
+
+function delKey(i){
+  if(!confirm('Eliminare?')) return;
+  keys.splice(i,1);persist();renderKeys();refreshDash();
+}
+
+// HISTORY
+function renderHistory(){
+  var el=document.getElementById('hist-list');
+  var hist=[];
+  try{hist=JSON.parse(localStorage.getItem('prev_hist')||'[]');}catch(e){}
+  if(hist.length===0){el.innerHTML='<div style="text-align:center;padding:40px 20px;font-family:monospace;font-size:.7rem;color:var(--dim);">Nessuna anteprima ancora.</div>';return;}
+  el.innerHTML=hist.map(function(item,i){
+    var d=new Date(item.date);
+    var ds=d.toLocaleDateString('it-IT',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    var snip=item.code.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().substring(0,80);
+    return '<div class="hcard">'
+      +'<div class="hcard-top"><span style="font-family:monospace;font-size:.58rem;color:var(--dim);">'+ds+'</span>'
+      +'<div class="hcard-btns">'
+      +'<button onclick="histReplay('+i+')" style="padding:4px 9px;border-radius:5px;border:1px solid var(--c1);background:rgba(0,229,255,.08);color:var(--c1);font-family:monospace;font-size:.58rem;cursor:pointer;">▶ Rivedi</button>'
+      +'<button onclick="histSave('+i+')" style="padding:4px 9px;border-radius:5px;border:1px solid var(--c2);background:rgba(168,255,62,.08);color:var(--c2);font-family:monospace;font-size:.58rem;cursor:pointer;margin-left:4px;">💾 Salva</button>'
+      +'</div></div>'
+      +'<div class="hcard-snip">'+(snip||'(nessun testo visibile)')+'...</div>'
+      +'</div>';
+  }).join('');
+}
+
+function histReplay(i){
+  var hist=JSON.parse(localStorage.getItem('prev_hist')||'[]');
+  if(!hist[i]) return;
+  document.getElementById('qcode').value=hist[i].code;
+  showPage('ph');
+  setTimeout(qPreview,300);
+}
+
+function histSave(i){
+  var hist=JSON.parse(localStorage.getItem('prev_hist')||'[]');
+  if(!hist[i]) return;
+  openAddForm();
+  document.getElementById('f-code').value=hist[i].code;
+}
+
+function clearHistory(){
+  if(!confirm('Svuotare la cronologia?')) return;
+  localStorage.removeItem('prev_hist');
+  renderHistory();toast('Cronologia svuotata');
+}
+
+// QUICK PREVIEW
+function qPreview(){
+  var code=document.getElementById('qcode').value.trim();
+  if(!code){toast('Incolla prima del codice!');return;}
+  document.getElementById('qframe').srcdoc=code;
+  var wrap=document.getElementById('qprev');
+  wrap.style.display='block';
+  wrap.scrollIntoView({behavior:'smooth',block:'start'});
+  // Save to history
+  var hist=[];
+  try{hist=JSON.parse(localStorage.getItem('prev_hist')||'[]');}catch(e){}
+  hist.unshift({code:code,date:Date.now()});
+  if(hist.length>10) hist=hist.slice(0,10);
+  localStorage.setItem('prev_hist',JSON.stringify(hist));
+}
+
+function qSave(){
+  var code=document.getElementById('qcode').value.trim();
+  if(!code){toast('Incolla prima del codice!');return;}
+  openAddForm();
+  document.getElementById('f-code').value=code;
+}
+
+function qClear(){
+  document.getElementById('qcode').value='';
+  document.getElementById('qprev').style.display='none';
+}
+
+// FAVORITES
+function openFavPicker(){
+  tempFavs=JSON.parse(localStorage.getItem('launcher_favs')||'[]');
+  var el=document.getElementById('fav-picker');
+  if(apps.length===0){
+    el.innerHTML='<div style="text-align:center;padding:20px;font-family:monospace;font-size:.68rem;color:var(--dim);">Nessuna app salvata ancora</div>';
+  } else {
+    el.innerHTML=apps.map(function(app){
+      var sel=tempFavs.indexOf(app.id)>-1;
+      return '<div id="fp-'+app.id+'" onclick="toggleFav(\''+app.id+'\')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;border:1px solid '+(sel?'var(--c1)':'var(--bor)')+';background:'+(sel?'rgba(0,229,255,.07)':'var(--sur2)')+';cursor:pointer;transition:all .15s;">'
+        +'<span style="font-size:1.3rem;">'+(app.emoji||'🚀')+'</span>'
+        +'<span style="flex:1;font-size:.85rem;font-weight:700;">'+app.name+'</span>'
+        +'<span id="fpc-'+app.id+'">'+(sel?'⭐':'')+'</span>'
+        +'</div>';
+    }).join('');
+  }
+  openModal('mfav');
+}
+
+function toggleFav(id){
+  var idx=tempFavs.indexOf(id);
+  var el=document.getElementById('fp-'+id);
+  var ck=document.getElementById('fpc-'+id);
+  if(idx>-1){
+    tempFavs.splice(idx,1);
+    el.style.border='1px solid var(--bor)';el.style.background='var(--sur2)';ck.textContent='';
+  } else {
+    if(tempFavs.length>=6){toast('Massimo 6 preferite!');return;}
+    tempFavs.push(id);
+    el.style.border='1px solid var(--c1)';el.style.background='rgba(0,229,255,.07)';ck.textContent='⭐';
+  }
+}
+
+function saveFavs(){
+  localStorage.setItem('launcher_favs',JSON.stringify(tempFavs));
+  closeModal('mfav');refreshDash();toast('Preferite aggiornate!');
+}
+
+// IMPORT LINK
+function importLink(){
+  var input=document.getElementById('i-link').value.trim();
+  var ap;
+  try{var u=new URL(input);ap=u.searchParams.get('app');}catch(e){ap=input;}
+  if(!ap){toast('Link non valido');return;}
+  try{
+    var data=JSON.parse(decodeURIComponent(escape(atob(ap))));
+    if(!data.code) throw new Error();
+    apps.unshift(Object.assign({},data,{id:String(Date.now()),created:Date.now()}));
+    persist();closeModal('mi');renderApps();refreshDash();toast('App importata: '+data.name);
+  }catch(e){toast('Link non valido');}
+}
+
+// BUILDER
+function openBuilderTab(){
+  var base=location.href.split('?')[0];
+  // Try to build path to builder
+  var url;
+  if(base.indexOf('launcher.html')>-1){
+    url=base.replace('launcher.html','lego-app-builder.html');
+  } else if(base.endsWith('/')){
+    url=base+'lego-app-builder.html';
+  } else {
+    url=base.substring(0,base.lastIndexOf('/')+1)+'lego-app-builder.html';
+  }
+  var w=window.open(url,'_blank');
+  if(!w) toast('Apri manualmente lego-app-builder.html');
+  else toast('Builder aperto! Torna qui dopo.');
+}
+
+// EMOJI / COLOR PICKERS
+function buildPickers(){
+  var eg=document.getElementById('egrid');
+  EMOJIS.forEach(function(e){
+    var b=document.createElement('div');
+    b.className='eopt'+(e===selEmoji?' sel':'');
+    b.textContent=e;
+    b.onclick=function(){selEmoji=e;updateEmoji();};
+    eg.appendChild(b);
+  });
+  var cg=document.getElementById('cgrid');
+  COLORS.forEach(function(c){
+    var b=document.createElement('div');
+    b.className='copt'+(c.n===selColor?' sel':'');
+    b.style.background=c.v;
+    b.onclick=function(){selColor=c.n;updateColor();};
+    cg.appendChild(b);
+  });
+}
+
+function updateEmoji(){document.querySelectorAll('.eopt').forEach(function(el,i){el.classList.toggle('sel',EMOJIS[i]===selEmoji);});}
+function updateColor(){document.querySelectorAll('.copt').forEach(function(el,i){el.classList.toggle('sel',COLORS[i].n===selColor);});}
+
+// MODAL HELPERS
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// TOAST
+function toast(msg){
+  var el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(function(){el.classList.remove('show');},2800);
+}
+
+// CELEBRATE
+function celebrate(name){
+  var canvas=document.getElementById('confetti');
+  canvas.style.display='block';
+  var ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  var pieces=[];
+  for(var i=0;i<130;i++){
+    pieces.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,r:Math.random()*8+4,tilt:Math.random()*10-10,speed:Math.random()*3+1,color:['#00e5ff','#a8ff3e','#bf5fff','#ff6b35','#ff4081','#ffea00'][Math.floor(Math.random()*6)]});
+  }
+  var frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(function(p){ctx.beginPath();ctx.fillStyle=p.color;ctx.ellipse(p.x,p.y,p.r,p.r/2,p.tilt,0,Math.PI*2);ctx.fill();p.y+=p.speed;p.tilt+=0.1;if(p.y>canvas.height){p.y=-10;p.x=Math.random()*canvas.width;}});
+    frame++;
+    if(frame<200) requestAnimationFrame(draw);
+    else{ctx.clearRect(0,0,canvas.width,canvas.height);canvas.style.display='none';}
+  }
+  draw();
+  setTimeout(function(){
+    if(confirm('Hai creato la tua prima app: "'+name+'"!\n\nVuoi condividerla subito?')){
+      var app=apps[0];if(app) openShareModal(app);
+    }
+  },1200);
+}
+
+// BUILDER SAVES TO LAUNCHER
+window.addEventListener('storage',function(e){
+  if(e.key==='launcher_apps'){
+    try{apps=JSON.parse(e.newValue||'[]');}catch(ex){}
+    refreshDash();
+  }
+});
+
+// INIT
+var currentFolderApp = null;
+var currentDocIdx = null;
+
+function openFolder(id){
+  var app = apps.find(function(a){return a.id===id;});
+  if(!app) return;
+  currentFolderApp = app;
+  renderFolder();
+  showScreen('sfd');
+}
+
+function closeFolder(){
+  currentFolderApp = null;
+  showScreen('sm');
+}
+
+function editCurrentApp(){
+  if(!currentFolderApp) return;
+  closeFolder();
+  setTimeout(function(){ openEditForm(currentFolderApp.id); }, 100);
+}
+
+function renderFolder(){
+  var app = currentFolderApp;
+  document.getElementById('fd-title').textContent = (app.emoji||'') + ' ' + app.name;
+  var docs = app.docs || [];
+  var el = document.getElementById('fd-body');
+  el.innerHTML = '';
+
+  // Header card
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'background:var(--sur);border:1px solid var(--bor);border-radius:14px;padding:18px;margin-bottom:20px;';
+  var chips = '<span style="font-family:monospace;font-size:.55rem;padding:3px 8px;border-radius:20px;border:1px solid var(--bor);color:var(--dim);">'+fmtDate(app.created)+'</span>';
+  if(app.back) chips += '<span style="font-family:monospace;font-size:.55rem;padding:3px 8px;border-radius:20px;border:1px solid var(--c3);color:var(--c3);">⚙️ '+app.back+'</span>';
+  chips += '<span style="font-family:monospace;font-size:.55rem;padding:3px 8px;border-radius:20px;border:1px solid var(--bor);color:var(--dim);">'+(app.pub?'🔗 Condivisibile':'🔒 Privata')+'</span>';
+  hdr.innerHTML = '<div style="font-size:2.5rem;margin-bottom:8px;">'+(app.emoji||'🚀')+'</div>'
+    +'<div style="font-size:1.2rem;font-weight:800;margin-bottom:4px;">'+app.name+'</div>'
+    +(app.desc?'<div style="font-family:monospace;font-size:.68rem;color:var(--dim);margin-bottom:6px;">'+app.desc+'</div>':'')
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">'+chips+'</div>';
+  el.appendChild(hdr);
+
+  // Section title
+  var stitle = document.createElement('div');
+  stitle.style.cssText = 'font-family:monospace;font-size:.6rem;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;';
+  stitle.textContent = 'CONTENUTO CARTELLA';
+  el.appendChild(stitle);
+
+  // App launcher row
+  var appRow = document.createElement('div');
+  appRow.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--sur);border:1px solid rgba(0,229,255,.3);border-radius:12px;cursor:pointer;margin-bottom:10px;';
+  appRow.innerHTML = '<span style="font-size:1.6rem;">▶️</span>'
+    +'<div style="flex:1;">'
+    +'<div style="font-weight:800;font-size:.9rem;color:var(--c1);">'+app.name+'</div>'
+    +'<div style="font-family:monospace;font-size:.58rem;color:var(--dim);">Applicazione HTML — tocca per aprire</div>'
+    +'</div>'
+    +'<span style="color:var(--dim);">›</span>';
+  appRow.onclick = function(){ launchApp(currentFolderApp); };
+  el.appendChild(appRow);
+
+  // Document rows
+  docs.forEach(function(doc, i){
+    var snip = doc.content.replace(/\n/g,' ').replace(/\s+/g,' ').trim().substring(0,50);
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--sur);border:1px solid var(--bor);border-radius:12px;cursor:pointer;margin-bottom:10px;';
+    row.innerHTML = '<span style="font-size:1.6rem;">📄</span>'
+      +'<div style="flex:1;">'
+      +'<div style="font-weight:700;font-size:.88rem;">'+doc.name+'</div>'
+      +'<div style="font-family:monospace;font-size:.58rem;color:var(--dim);">'+(snip||'...')+'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center;">'
+      +'<button data-di="'+i+'" style="padding:4px 8px;border-radius:5px;border:1px solid rgba(255,82,82,.3);background:rgba(255,82,82,.08);color:var(--err);font-family:monospace;font-size:.55rem;cursor:pointer;">✕</button>'
+      +'<span style="color:var(--dim);">›</span>'
+      +'</div>';
+    row.querySelector('button').onclick = function(e){ e.stopPropagation(); deleteDoc(parseInt(this.getAttribute('data-di'))); };
+    row.onclick = function(e){ if(e.target.tagName==='BUTTON') return; openDoc(i); };
+    el.appendChild(row);
+  });
+
+  // Add document button
+  var addRow = document.createElement('div');
+  addRow.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--sur2);border:1px dashed var(--bor);border-radius:12px;cursor:pointer;margin-bottom:10px;';
+  addRow.innerHTML = '<span style="font-size:1.6rem;">➕</span>'
+    +'<div>'
+    +'<div style="font-weight:700;font-size:.88rem;color:var(--dim);">Aggiungi documento</div>'
+    +'<div style="font-family:monospace;font-size:.58rem;color:var(--dim);">Istruzioni, note tecniche, descrizione...</div>'
+    +'</div>';
+  addRow.onclick = openAddDoc;
+  el.appendChild(addRow);
+}
+function openAddDoc(){
+  currentDocIdx = null;
+  document.getElementById('mdoc-title').textContent = '📄 Nuovo Documento';
+  document.getElementById('doc-name-inp').value = '';
+  document.getElementById('doc-content-inp').value = '';
+  openModal('mdoc');
+}
+
+function saveDoc(){
+  var name = document.getElementById('doc-name-inp').value.trim();
+  var content = document.getElementById('doc-content-inp').value.trim();
+  if(!name){toast('Dai un titolo al documento!');return;}
+  if(!content){toast('Scrivi qualcosa nel documento!');return;}
+  var app = currentFolderApp;
+  var idx = apps.findIndex(function(a){return a.id===app.id;});
+  if(idx===-1) return;
+  if(!apps[idx].docs) apps[idx].docs = [];
+  if(currentDocIdx !== null){
+    apps[idx].docs[currentDocIdx] = {name:name, content:content};
+  } else {
+    apps[idx].docs.push({name:name, content:content});
+  }
+  persist();
+  currentFolderApp = apps[idx];
+  closeModal('mdoc');
+  renderFolder();
+  toast('Documento salvato!');
+}
+
+function openDoc(i){
+  var app = currentFolderApp;
+  var doc = (app.docs||[])[i];
+  if(!doc) return;
+  currentDocIdx = i;
+  document.getElementById('doc-title').textContent = '📄 ' + doc.name;
+  document.getElementById('doc-body').textContent = doc.content;
+  showScreen('sdoc');
+}
+
+function closeDoc(){
+  showScreen('sfd');
+}
+
+function editCurrentDoc(){
+  if(currentDocIdx === null) return;
+  var doc = (currentFolderApp.docs||[])[currentDocIdx];
+  if(!doc) return;
+  document.getElementById('mdoc-title').textContent = '✏️ Modifica Documento';
+  document.getElementById('doc-name-inp').value = doc.name;
+  document.getElementById('doc-content-inp').value = doc.content;
+  closeDoc();
+  setTimeout(function(){ openModal('mdoc'); }, 200);
+}
+
+function deleteDoc(i){
+  if(!confirm('Eliminare questo documento?')) return;
+  var idx = apps.findIndex(function(a){return a.id===currentFolderApp.id;});
+  if(idx===-1) return;
+  apps[idx].docs.splice(i,1);
+  persist();
+  currentFolderApp = apps[idx];
+  renderFolder();
+  toast('Documento eliminato');
+}
+
+function togglePrivacy(id){
+  var idx=apps.findIndex(function(a){return a.id===id;});
+  if(idx===-1) return;
+  apps[idx].pub=!apps[idx].pub;
+  persist();
+  renderApps();
+  toast(apps[idx].pub?'🔗 App resa condivisibile':'🔒 App resa privata');
+}
+
+function exportBackup(){
+  var data={
+    version:1,
+    date:Date.now(),
+    apps:apps,
+    keys:keys,
+    favs:JSON.parse(localStorage.getItem('launcher_favs')||'[]'),
+    history:JSON.parse(localStorage.getItem('prev_hist')||'[]')
+  };
+  var json=JSON.stringify(data,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  var d=new Date();
+  a.download='launcher-backup-'+d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()+'.json';
+  a.click();
+  localStorage.setItem('last_backup',String(Date.now()));
+  updateBackupInfo();
+  toast('Backup esportato! Salvalo su Mega o Drive.');
+}
+
+function importBackup(e){
+  var file=e.target.files[0];
+  if(!file) return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);
+      if(!data.version||!data.apps) throw new Error('File non valido');
+      var msg='Trovate '+data.apps.length+' app';
+      if(data.keys&&data.keys.length) msg+=', '+data.keys.length+' chiavi API';
+      msg+='. Importare? I dati attuali verranno sostituiti.';
+      if(!confirm(msg)) return;
+      apps=data.apps||[];
+      keys=data.keys||[];
+      if(data.favs) localStorage.setItem('launcher_favs',JSON.stringify(data.favs));
+      if(data.history) localStorage.setItem('prev_hist',JSON.stringify(data.history));
+      persist();
+      refreshDash();
+      updateBackupInfo();
+      toast('Ripristino completato! '+apps.length+' app importate.');
+    }catch(ex){
+      toast('File non valido o corrotto');
+    }
+  };
+  r.readAsText(file);
+  e.target.value='';
+}
+
+function updateBackupInfo(){
+  var el=document.getElementById('backup-info');
+  if(!el) return;
+  var last=localStorage.getItem('last_backup');
+  if(last){
+    var d=new Date(parseInt(last));
+    var ds=d.toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});
+    el.innerHTML='<span style="color:var(--ok);">✅ Ultimo backup: '+ds+'</span><br>'
+      +'<span>App salvate: '+apps.length+' &nbsp;|&nbsp; Chiavi: '+keys.length+'</span>';
+  } else {
+    el.innerHTML='<span style="color:var(--c4);">⚠️ Nessun backup ancora.</span><br>Ti consigliamo di esportare subito un backup.';
+  }
+}
+
+function saveReminder(){
+  var val='7';
+  document.querySelectorAll('input[name="bkrem"]').forEach(function(r){if(r.checked) val=r.value;});
+  localStorage.setItem('backup_reminder',val);
+  toast(val==='0'?'Promemoria disattivato':'Promemoria impostato!');
+}
+
+function loadReminderSetting(){
+  var val=localStorage.getItem('backup_reminder')||'7';
+  document.querySelectorAll('input[name="bkrem"]').forEach(function(r){r.checked=(r.value===val);});
+}
+
+function checkBackupReminder(){
+  var val=parseInt(localStorage.getItem('backup_reminder')||'7');
+  if(val===0) return;
+  var last=parseInt(localStorage.getItem('last_backup')||'0');
+  if(!last) return; // never backed up, info page handles it
+  var days=Math.floor((Date.now()-last)/(1000*60*60*24));
+  if(days>=val){
+    setTimeout(function(){
+      if(confirm('Sono passati '+days+' giorni dal tuo ultimo backup.\n\nVuoi esportarlo adesso?')){
+        showPage('pbackup');
+        setTimeout(exportBackup,300);
+      }
+    },2000);
+  }
+}
+
+function shareFolderApp(){
+  if(!currentFolderApp) return;
+  if(!currentFolderApp.pub){
+    if(confirm('Questa app e privata 🔒\n\nVuoi renderla condivisibile e ottenere il link?')){
+      var idx=apps.findIndex(function(a){return a.id===currentFolderApp.id;});
+      if(idx>-1){apps[idx].pub=true;currentFolderApp=apps[idx];persist();renderFolder();}
+    } else return;
+  }
+  openShareModal(currentFolderApp);
+}
+
+function downloadApp(id){
+  var app=apps.find(function(a){return a.id===id;});
+  if(!app||!app.code){toast('Nessun codice da scaricare');return;}
+  var blob=new Blob([app.code],{type:'text/html'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(app.name||'app').replace(/[^a-z0-9]/gi,'-').toLowerCase()+'.html';
+  a.click();
+  toast('📥 '+app.name+' scaricata!');
+}
+
+function shareDownloadFile(){
+  var app = shareApp || currentApp;
+  if(!app||!app.code){toast('Nessun codice da scaricare');return;}
+  var blob=new Blob([app.code],{type:'text/html'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(app.name||'app').replace(/[^a-z0-9]/gi,'-').toLowerCase()+'.html';
+  a.click();
+  toast('File scaricato! Allegalo su WhatsApp.');
+}
+
+async function shareNativeFile(){
+  var app = shareApp || currentApp;
+  if(!app||!app.code){toast('Nessun codice');return;}
+  var fname=(app.name||'app').replace(/[^a-z0-9]/gi,'-').toLowerCase()+'.html';
+  var blob=new Blob([app.code],{type:'text/html'});
+  var file=new File([blob],fname,{type:'text/html'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({files:[file],title:app.name,text:'Guarda questa app che ho creato!'});
+    }catch(e){
+      if(e.name!=='AbortError') shareDownloadFile();
+    }
+  } else {
+    // fallback: just download
+    shareDownloadFile();
+    toast('Condivisione diretta non supportata — file scaricato, allegalo manualmente.');
+  }
+}
+
+function init(){
+  load();buildPickers();checkSharedLink();checkBackupReminder();
+  var visited=localStorage.getItem('l_visited');
+  if(!visited){showScreen('si');localStorage.setItem('l_visited','1');}
+  else{showScreen('sm');showPage('ph');}
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    ['mc','mf','mi','mk','ms','mfav'].forEach(function(id){closeModal(id);});
+    if(document.getElementById('sv').classList.contains('active')) closeApp();
+  }
+});
+
+init();
+</script>
+</body>
+</html>
