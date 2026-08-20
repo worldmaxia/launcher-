@@ -1,0 +1,1 @@
+export default function handler(req,res){res.statusCode=200;res.setHeader('content-type','application/json; charset=utf-8');res.setHeader('cache-control','no-store');res.end(JSON.stringify({ok:true,service:'ai-presence-lab',version:'0.1.0',supabaseConfigured:Boolean(process.env.SUPABASE_URL&&process.env.SUPABASE_PUBLISHABLE_KEY),timestamp:new Date().toISOString()}));}
