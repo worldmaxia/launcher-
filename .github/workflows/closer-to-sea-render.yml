@@ -1,4 +1,4 @@
-name: Closer to the Sea render
+name: Closer to the Sea direct publish
 
 on:
   pull_request:
@@ -8,65 +8,62 @@ on:
       - 'render-trigger.txt'
   workflow_dispatch:
 
+permissions:
+  actions: read
+  contents: write
+
 jobs:
-  render:
+  publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
-      - name: Download and normalize Pexels clips
-        shell: bash
+      - name: Download verified visual master
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mkdir -p raw norm
-          ids=(33036430 18358818 33078032 31454309 8490929 27205197 35141510 36200699 19095139 6440757 33040286 34256902 8303146)
-          i=0
-          for id in "${ids[@]}"; do
-            i=$((i+1))
-            echo "Downloading clip $i / ${#ids[@]} — Pexels $id"
-            curl -L --retry 4 --retry-delay 2 --fail --max-time 240 "https://www.pexels.com/download/video/${id}/" -o "raw/${i}.mp4"
-            ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "raw/${i}.mp4"
-            ffmpeg -y -hide_banner -loglevel error -stream_loop -1 -i "raw/${i}.mp4" -t 18.03 \
-              -vf "scale=1920:1080:force_original_aspect_ratio=increase:flags=lanczos,crop=1920:1080,fps=24,setsar=1,format=yuv420p" \
-              -an -c:v libx264 -preset veryfast -crf 20 -movflags +faststart "norm/${i}.mp4"
-          done
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/9517795468/zip > artifact.zip
+          mkdir -p artifact
+          unzip -q artifact.zip -d artifact
+          test -f artifact/closer_to_the_sea_silent.mp4
 
-      - name: Assemble cinematic visual master
-        shell: bash
+      - name: Build public 1080p delivery under 100 MB
         run: |
           set -euo pipefail
+          mkdir -p downloads
           ffmpeg -y -hide_banner -loglevel error \
-            -i norm/1.mp4 -i norm/2.mp4 -i norm/3.mp4 -i norm/4.mp4 -i norm/5.mp4 -i norm/6.mp4 -i norm/7.mp4 \
-            -i norm/8.mp4 -i norm/9.mp4 -i norm/10.mp4 -i norm/11.mp4 -i norm/12.mp4 -i norm/13.mp4 \
-            -filter_complex "\
-            [0:v][1:v]xfade=transition=fade:duration=1:offset=17.03[x1];\
-            [x1][2:v]xfade=transition=fade:duration=1:offset=34.06[x2];\
-            [x2][3:v]xfade=transition=fade:duration=1:offset=51.09[x3];\
-            [x3][4:v]xfade=transition=fade:duration=1:offset=68.12[x4];\
-            [x4][5:v]xfade=transition=fade:duration=1:offset=85.15[x5];\
-            [x5][6:v]xfade=transition=fade:duration=1:offset=102.18[x6];\
-            [x6][7:v]xfade=transition=fade:duration=1:offset=119.21[x7];\
-            [x7][8:v]xfade=transition=fade:duration=1:offset=136.24[x8];\
-            [x8][9:v]xfade=transition=fade:duration=1:offset=153.27[x9];\
-            [x9][10:v]xfade=transition=fade:duration=1:offset=170.30[x10];\
-            [x10][11:v]xfade=transition=fade:duration=1:offset=187.33[x11];\
-            [x11][12:v]xfade=transition=fade:duration=1:offset=204.36,trim=duration=222.28,setpts=PTS-STARTPTS[vout]" \
-            -map "[vout]" -c:v libx264 -preset veryfast -crf 19 -pix_fmt yuv420p -r 24 -movflags +faststart closer_to_the_sea_silent.mp4
+            -i artifact/closer_to_the_sea_silent.mp4 \
+            -an -c:v libx264 -preset veryfast -b:v 2800k -maxrate 3200k -bufsize 6400k \
+            -pix_fmt yuv420p -r 24 -movflags +faststart \
+            downloads/closer_to_the_sea_silent_1080p.mp4
 
-          ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height,r_frame_rate -of json closer_to_the_sea_silent.mp4 > visual-master-probe.json
-          ffmpeg -y -hide_banner -loglevel error -i closer_to_the_sea_silent.mp4 -vf "fps=1/18,scale=480:-1,tile=4x4" -frames:v 1 contact-sheet.jpg
+          ffprobe -v error \
+            -show_entries format=duration,size \
+            -show_entries stream=codec_name,width,height,r_frame_rate \
+            -of json downloads/closer_to_the_sea_silent_1080p.mp4 \
+            > downloads/closer_to_the_sea_silent_1080p.json
 
-      - name: Upload visual master artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: closer-to-the-sea-visual-master
-          path: |
-            closer_to_the_sea_silent.mp4
-            contact-sheet.jpg
-            visual-master-probe.json
-          compression-level: 0
-          retention-days: 3
+          SIZE=$(stat -c%s downloads/closer_to_the_sea_silent_1080p.mp4)
+          test "$SIZE" -lt 99000000
+          DURATION=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 downloads/closer_to_the_sea_silent_1080p.mp4)
+          python3 - "$DURATION" <<'PY'
+import sys
+v=float(sys.argv[1])
+assert 222.0 <= v <= 222.6, f'Unexpected duration: {v}'
+PY
+
+      - name: Commit direct-download file to PR branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add downloads/closer_to_the_sea_silent_1080p.mp4 downloads/closer_to_the_sea_silent_1080p.json
+          git commit -m 'publish: Closer to the Sea silent 1080p direct download' || true
+          git push origin HEAD:${{ github.head_ref }}
