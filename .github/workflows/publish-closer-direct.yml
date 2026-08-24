@@ -1,0 +1,60 @@
+name: Publish Closer direct download
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-closer-direct.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Download verified master artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/9517795468/zip > artifact.zip
+          mkdir -p artifact
+          unzip -q artifact.zip -d artifact
+          test -f artifact/closer_to_the_sea_silent.mp4
+
+      - name: Create direct-download 1080p copy under GitHub file limit
+        run: |
+          set -euo pipefail
+          mkdir -p downloads
+          ffmpeg -y -hide_banner -loglevel error \
+            -i artifact/closer_to_the_sea_silent.mp4 \
+            -an -c:v libx264 -preset slow -b:v 2800k -maxrate 3200k -bufsize 6400k \
+            -pix_fmt yuv420p -r 24 -movflags +faststart \
+            downloads/closer_to_the_sea_silent_1080p.mp4
+          ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height,r_frame_rate -of json downloads/closer_to_the_sea_silent_1080p.mp4 | tee downloads/closer_to_the_sea_silent_1080p.json
+          SIZE=$(stat -c%s downloads/closer_to_the_sea_silent_1080p.mp4)
+          test "$SIZE" -lt 99000000
+          DURATION=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 downloads/closer_to_the_sea_silent_1080p.mp4)
+          python3 - "$DURATION" <<'PY'
+import sys
+v=float(sys.argv[1])
+assert 222.0 <= v <= 222.6, v
+PY
+
+      - name: Commit stable public download
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add downloads/closer_to_the_sea_silent_1080p.mp4 downloads/closer_to_the_sea_silent_1080p.json
+          git commit -m 'publish: Closer to the Sea silent 1080p direct download' || true
+          git push
