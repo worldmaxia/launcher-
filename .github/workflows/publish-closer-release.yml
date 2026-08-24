@@ -1,0 +1,60 @@
+name: Publish Closer to the Sea release
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'release-trigger.txt'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download verified render artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifact
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/9517795468/zip > artifact.zip
+          unzip -q artifact.zip -d artifact
+          ls -lh artifact
+          test -f artifact/closer_to_the_sea_silent.mp4
+
+      - name: Verify MP4 before publishing
+        run: |
+          set -euo pipefail
+          sudo apt-get update >/dev/null
+          sudo apt-get install -y ffmpeg >/dev/null
+          ffprobe -v error \
+            -show_entries format=duration,size \
+            -show_entries stream=codec_name,width,height,r_frame_rate \
+            -of json artifact/closer_to_the_sea_silent.mp4 | tee release-probe.json
+          DURATION=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 artifact/closer_to_the_sea_silent.mp4)
+          python3 - "$DURATION" <<'PY'
+import sys
+v=float(sys.argv[1])
+assert 222.0 <= v <= 222.6, f'Unexpected duration: {v}'
+PY
+
+      - name: Publish stable GitHub Release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG='closer-to-the-sea-silent-v1'
+          ASSET='artifact/closer_to_the_sea_silent.mp4'
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ASSET" --clobber
+          else
+            gh release create "$TAG" "$ASSET" \
+              --title 'Closer to the Sea — Silent 1080p Master' \
+              --notes 'Verified silent visual master. 1920x1080 H.264, 24 fps, ~3:42.28. Add the original WAV from 00:00.000.'
+          fi
+          gh release view "$TAG" --json url,assets
