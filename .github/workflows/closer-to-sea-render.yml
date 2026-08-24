@@ -1,0 +1,40 @@
+name: Closer to the Sea render
+on:
+  push:
+    branches: [closer-to-sea-render-20260824]
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Build visual master
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p raw norm
+          ids=(33036430 18358818 33078032 31454309 8490929 27205197 35141510 36200699 19095139 6440757 33040286 34256902 8303146)
+          i=0
+          for id in "${ids[@]}"; do
+            i=$((i+1))
+            curl -L --retry 3 --fail --max-time 240 "https://www.pexels.com/download/video/${id}/" -o "raw/${i}.mp4"
+            ffmpeg -y -i "raw/${i}.mp4" -t 18.03 -vf "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,fps=30,format=yuv420p" -an -c:v libx264 -preset medium -crf 19 "norm/${i}.mp4"
+          done
+          inputs=""; for i in $(seq 1 13); do inputs="$inputs -i norm/${i}.mp4"; done
+          filter="[0:v][1:v]xfade=transition=fade:duration=1:offset=17.03[v1];"
+          for i in $(seq 2 12); do prev=$((i-1)); off=$(python3 - <<PY
+print(f'{17.03*${i}:.2f}')
+PY
+); filter="${filter}[v${prev}][${i}:v]xfade=transition=fade:duration=1:offset=${off}[v${i}];"; done
+          filter="${filter}[v12]trim=duration=222.28,setpts=PTS-STARTPTS[vout]"
+          eval ffmpeg -y $inputs -filter_complex '"'$filter'"' -map '"[vout]"' -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -r 30 -movflags +faststart closer_to_the_sea_silent.mp4
+          ffmpeg -y -i closer_to_the_sea_silent.mp4 -vf "fps=1/18,scale=480:-1,tile=4x4" -frames:v 1 contact-sheet.jpg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: closer-to-the-sea-visual-master
+          path: |
+            closer_to_the_sea_silent.mp4
+            contact-sheet.jpg
+          compression-level: 0
+          retention-days: 3
