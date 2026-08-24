@@ -60,3 +60,14 @@ PY
               --notes 'Verified silent visual master. 1920x1080 H.264, 24 fps, ~3:42.28. Add the original WAV from 00:00.000.'
           fi
           gh release view "$TAG" --json url,assets
+
+      - name: Write verified public URL marker
+        run: |
+          set -euo pipefail
+          URL='https://github.com/worldmaxia/launcher-/releases/download/closer-to-the-sea-silent-v1/closer_to_the_sea_silent.mp4'
+          printf '%s\n' "$URL" > release-ready.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add release-ready.txt
+          git commit -m 'chore: mark Closer video release ready' || true
+          git push
