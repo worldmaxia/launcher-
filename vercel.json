@@ -3,6 +3,9 @@
   "functions": {
     "api/scan.js": { "maxDuration": 30 },
     "api/compile.js": { "maxDuration": 30 },
+    "api/discovery.js": { "maxDuration": 30 },
+    "api/agent-ready.js": { "maxDuration": 10 },
+    "api/v1-selftest.js": { "maxDuration": 10 },
     "api/selftest.js": { "maxDuration": 10 },
     "api/health.js": { "maxDuration": 10 }
   },
