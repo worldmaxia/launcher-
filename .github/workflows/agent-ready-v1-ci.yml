@@ -1,0 +1,41 @@
+name: Agent Ready V1 CI
+
+on:
+  pull_request:
+    branches: [ai-presence-lab-v1]
+  push:
+    branches: [agent-ready-scanner-v1]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax checks
+        run: |
+          node --check lib/agent-ready.js
+          node --check lib/canonical-skill.js
+          node --check lib/core.js
+          node --check api/discovery.js
+          node --check api/agent-ready.js
+          node --check api/v1-selftest.js
+          node --check api/scan.js
+          node --check api/compile.js
+      - name: Run V1.1 selftest handler
+        run: |
+          node --input-type=module <<'NODE'
+          import handler from './api/v1-selftest.js';
+          let status=200, payload='';
+          const res={status(n){status=n;return this},json(x){payload=JSON.stringify(x);return this}};
+          handler({},res);
+          console.log(payload);
+          const out=JSON.parse(payload);
+          const required=['IKEA promo rejected','skill/report parity','catalog in skill','form in skill','promo absent in skill','conditional stop','ranking rule','exhaustive rule'];
+          if(status!==200 || !out.ok || out.version!=='1.1.0' || out.tests<18 || required.some(x=>!out.checks.includes(x))) process.exit(1);
+          NODE
