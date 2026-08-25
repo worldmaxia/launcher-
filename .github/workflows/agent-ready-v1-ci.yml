@@ -20,13 +20,14 @@ jobs:
       - name: Syntax checks
         run: |
           node --check lib/agent-ready.js
+          node --check lib/canonical-skill.js
           node --check lib/core.js
           node --check api/discovery.js
           node --check api/agent-ready.js
           node --check api/v1-selftest.js
           node --check api/scan.js
           node --check api/compile.js
-      - name: Run V1 selftest handler
+      - name: Run V1.1 selftest handler
         run: |
           node --input-type=module <<'NODE'
           import handler from './api/v1-selftest.js';
@@ -35,5 +36,6 @@ jobs:
           handler({},res);
           console.log(payload);
           const out=JSON.parse(payload);
-          if(status!==200 || !out.ok || out.version!=='1.1.0' || out.tests!==26) process.exit(1);
+          const required=['IKEA promo rejected','skill/report parity','catalog in skill','form in skill','promo absent in skill','conditional stop','ranking rule','exhaustive rule'];
+          if(status!==200 || !out.ok || out.version!=='1.1.0' || out.tests<18 || required.some(x=>!out.checks.includes(x))) process.exit(1);
           NODE
