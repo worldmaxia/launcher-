@@ -6,11 +6,6 @@ on:
     paths:
       - 'unique-render-trigger.txt'
       - '.github/workflows/closer-unique-render.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'unique-render-trigger.txt'
-      - '.github/workflows/closer-unique-render.yml'
 
 jobs:
   render_unique:
@@ -18,10 +13,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
-
       - name: Download sources and verify no-loop durations
         shell: bash
         run: |
@@ -32,39 +25,30 @@ jobs:
           starts=(0 0 0 0 0 0 0 5 0 3 0 0 0)
           for idx in "${!ids[@]}"; do
             n=$((idx+1)); id=${ids[$idx]}; take=${takes[$idx]}; start=${starts[$idx]}
-            echo "Downloading unique source $n — Pexels $id"
             curl -L --retry 4 --retry-delay 2 --fail --max-time 240 "https://www.pexels.com/download/video/${id}/" -o "raw/${n}.mp4"
             rawdur=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "raw/${n}.mp4")
             python3 -c "import sys; raw,start,take=map(float,sys.argv[1:4]); vid=sys.argv[4]; assert start>=0 and take>0 and start+take<=raw+0.03, f'NO-LOOP GUARD FAILED for {vid}: need {start+take:.3f}s, source has {raw:.3f}s'" "$rawdur" "$start" "$take" "$id"
-            ffmpeg -y -hide_banner -loglevel error -ss "$start" -i "raw/${n}.mp4" -t "$take" \
-              -vf "scale=1920:1080:force_original_aspect_ratio=increase:flags=lanczos,crop=1920:1080,fps=24,setsar=1,format=yuv420p" \
-              -an -c:v libx264 -preset veryfast -crf 20 -movflags +faststart "norm/${n}.mp4"
+            ffmpeg -y -hide_banner -loglevel error -ss "$start" -i "raw/${n}.mp4" -t "$take" -vf "scale=1920:1080:force_original_aspect_ratio=increase:flags=lanczos,crop=1920:1080,fps=24,setsar=1,format=yuv420p" -an -c:v libx264 -preset veryfast -crf 20 -movflags +faststart "norm/${n}.mp4"
           done
-
       - name: Assemble unique cinematic master
         shell: bash
         run: |
           set -euo pipefail
-          ffmpeg -y -hide_banner -loglevel error \
-            -i norm/1.mp4 -i norm/2.mp4 -i norm/3.mp4 -i norm/4.mp4 -i norm/5.mp4 -i norm/6.mp4 -i norm/7.mp4 \
-            -i norm/8.mp4 -i norm/9.mp4 -i norm/10.mp4 -i norm/11.mp4 -i norm/12.mp4 -i norm/13.mp4 \
-            -filter_complex "[0:v][1:v]xfade=transition=fade:duration=0.6:offset=4.833333[x1];[x1][2:v]xfade=transition=fade:duration=0.6:offset=13.966666[x2];[x2][3:v]xfade=transition=fade:duration=0.6:offset=20.899999[x3];[x3][4:v]xfade=transition=fade:duration=0.6:offset=24.771132[x4];[x4][5:v]xfade=transition=fade:duration=0.6:offset=39.637799[x5];[x5][6:v]xfade=transition=fade:duration=0.6:offset=46.144899[x6];[x6][7:v]xfade=transition=fade:duration=0.6:offset=52.985666[x7];[x7][8:v]xfade=transition=fade:duration=0.6:offset=126.866763[x8];[x8][9:v]xfade=transition=fade:duration=0.6:offset=137.978430[x9];[x9][10:v]xfade=transition=fade:duration=0.6:offset=182.378430[x10];[x10][11:v]xfade=transition=fade:duration=0.6:offset=194.318033[x11];[x11][12:v]xfade=transition=fade:duration=0.6:offset=202.360000,trim=duration=222.28,setpts=PTS-STARTPTS[vout]" \
-            -map "[vout]" -an -c:v libx264 -preset veryfast -crf 19 -pix_fmt yuv420p -r 24 -movflags +faststart closer_to_the_sea_unique_silent.mp4
-
-      - name: Verify final master
+          ffmpeg -y -hide_banner -loglevel error -i norm/1.mp4 -i norm/2.mp4 -i norm/3.mp4 -i norm/4.mp4 -i norm/5.mp4 -i norm/6.mp4 -i norm/7.mp4 -i norm/8.mp4 -i norm/9.mp4 -i norm/10.mp4 -i norm/11.mp4 -i norm/12.mp4 -i norm/13.mp4 -filter_complex "[0:v][1:v]xfade=transition=fade:duration=0.6:offset=4.833333[x1];[x1][2:v]xfade=transition=fade:duration=0.6:offset=13.966666[x2];[x2][3:v]xfade=transition=fade:duration=0.6:offset=20.899999[x3];[x3][4:v]xfade=transition=fade:duration=0.6:offset=24.771132[x4];[x4][5:v]xfade=transition=fade:duration=0.6:offset=39.637799[x5];[x5][6:v]xfade=transition=fade:duration=0.6:offset=46.144899[x6];[x6][7:v]xfade=transition=fade:duration=0.6:offset=52.985666[x7];[x7][8:v]xfade=transition=fade:duration=0.6:offset=126.866763[x8];[x8][9:v]xfade=transition=fade:duration=0.6:offset=137.978430[x9];[x9][10:v]xfade=transition=fade:duration=0.6:offset=182.378430[x10];[x10][11:v]xfade=transition=fade:duration=0.6:offset=194.318033[x11];[x11][12:v]xfade=transition=fade:duration=0.6:offset=202.360000,trim=duration=222.28,setpts=PTS-STARTPTS[vout]" -map "[vout]" -an -c:v libx264 -preset veryfast -crf 19 -pix_fmt yuv420p -r 24 -movflags +faststart closer_unique_master.mp4
+      - name: Verify and create delivery encode
         run: |
           set -euo pipefail
-          ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height,r_frame_rate -of json closer_to_the_sea_unique_silent.mp4 | tee unique-probe.json
-          dur=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 closer_to_the_sea_unique_silent.mp4)
-          python3 -c "import sys; v=float(sys.argv[1]); assert 222.20<=v<=222.36, f'Unexpected duration: {v}'" "$dur"
-          ffmpeg -y -hide_banner -loglevel error -i closer_to_the_sea_unique_silent.mp4 -vf "fps=1/18,scale=480:-1,tile=4x4" -frames:v 1 unique-contact-sheet.jpg
-
+          dur=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 closer_unique_master.mp4)
+          python3 -c "import sys; v=float(sys.argv[1]); assert 222.20<=v<=222.36" "$dur"
+          ffmpeg -y -hide_banner -loglevel error -i closer_unique_master.mp4 -an -c:v libx264 -preset slow -b:v 3000k -maxrate 4500k -bufsize 9000k -pix_fmt yuv420p -r 24 -movflags +faststart closer_unique_1080p.mp4
+          ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height,r_frame_rate -of json closer_unique_1080p.mp4 > delivery-probe.json
+          ffmpeg -y -hide_banner -loglevel error -i closer_unique_1080p.mp4 -vf "fps=1/18,scale=480:-1,tile=4x4" -frames:v 1 unique-contact-sheet.jpg
       - uses: actions/upload-artifact@v4
         with:
-          name: closer-to-the-sea-unique-visual-master
+          name: closer-unique-1080p-delivery
           path: |
-            closer_to_the_sea_unique_silent.mp4
+            closer_unique_1080p.mp4
+            delivery-probe.json
             unique-contact-sheet.jpg
-            unique-probe.json
           compression-level: 0
           retention-days: 3
