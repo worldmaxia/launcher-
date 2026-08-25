@@ -1,0 +1,44 @@
+name: Closer corrected delivery
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'delivery-pr-trigger.txt'
+      - '.github/workflows/closer-delivery-pr.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  encode_delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg unzip
+      - name: Download verified no-loop master artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/9578257397/zip > master.zip
+          unzip -q master.zip -d master
+          test -f master/closer_to_the_sea_unique_silent.mp4
+      - name: Encode 1080p delivery copy
+        run: |
+          set -euo pipefail
+          ffmpeg -y -hide_banner -loglevel error -i master/closer_to_the_sea_unique_silent.mp4 -an -c:v libx264 -preset slow -b:v 3000k -maxrate 4500k -bufsize 9000k -pix_fmt yuv420p -r 24 -movflags +faststart closer_unique_1080p.mp4
+          ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height,r_frame_rate -of json closer_unique_1080p.mp4 > delivery-probe.json
+          dur=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 closer_unique_1080p.mp4)
+          python3 -c "import sys; v=float(sys.argv[1]); assert 222.20<=v<=222.36, f'Unexpected duration: {v}'" "$dur"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: closer-corrected-1080p
+          path: |
+            closer_unique_1080p.mp4
+            delivery-probe.json
+          compression-level: 0
+          retention-days: 3
