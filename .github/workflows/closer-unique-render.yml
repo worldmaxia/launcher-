@@ -1,6 +1,11 @@
 name: Closer to the Sea unique render
 
 on:
+  push:
+    branches: [closer-unique-render-20260825]
+    paths:
+      - 'unique-render-trigger.txt'
+      - '.github/workflows/closer-unique-render.yml'
   pull_request:
     branches: [main]
     paths:
